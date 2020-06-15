@@ -16,9 +16,6 @@ from typing import *
 
 import numpy as np
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-
 from PIL import Image
 import skimage.segmentation
 import scipy.ndimage

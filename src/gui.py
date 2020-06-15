@@ -9,19 +9,26 @@ Useful references:
 - https://stackoverflow.com/questions/15269682/python-tkinter-canvas-fail-to-bind-keyboard
 - https://stackoverflow.com/questions/42333288/how-to-delete-lines-using-tkinter
 """
+import os
 import sys
 from typing import *
 
 import numpy as np
 import tkinter as tk
+from tkinter import filedialog
 from PIL import Image, ImageDraw, ImageTk
 
 import image_utils
 
 
 class ImageLabeller(tk.Tk):
+    """
+    Image labeller for a single image
+    """
+
     def __init__(self, img_fname: str, pb_color=image_utils.ANNOT_COLORS["GREEN"]):
         tk.Tk.__init__(self)
+        self.img_fname = img_fname
         img = image_utils.load_img(img_fname)
         self.height, self.width, _channels = img.shape
         self.rgb_color = pb_color
@@ -75,11 +82,18 @@ class ImageLabeller(tk.Tk):
         self.tkinter_lines.append(line_id)
         self.pil_draw.line(line_coords, fill=self.rgb_color)
 
-    def save_mask(self, event):
+    def save_mask(self, _event):
+        fname = filedialog.asksaveasfilename(
+            initialdir=os.getcwd(),
+            initialfile=os.path.splitext(os.path.basename(self.img_fname))[0]
+            + "_mask.png",
+            title="Save to file mask",
+            filetypes=(("png files", "*.png"), ("all files", "*.*")),
+        )
         filled_image = image_utils.lift_masks_from_img(
             np.array(self.pil_image), color_rgb=self.rgb_color, connect_iters=5,
         )
-        image_utils.write_img(filled_image, "filled.png")
+        image_utils.write_img(filled_image, fname)
 
     def clearall(self, _event):
         for line_id in self.tkinter_lines:

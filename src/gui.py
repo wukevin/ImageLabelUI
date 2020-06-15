@@ -10,6 +10,7 @@ from typing import *
 
 import numpy as np
 import tkinter as tk
+from PIL import Image, ImageDraw
 
 import image_utils
 
@@ -22,11 +23,13 @@ class ImageLabeller(tk.Tk):
         self.recorded_points = []
         self.canvas = tk.Canvas(width=400, height=400, bg="white", cursor="cross")
         self.canvas.pack(side="top", fill="both", expand=True)
-        self.mask_array = np.ndarray
 
         self.canvas.bind("<B1-Motion>", self.paintbrush)
         self.canvas.bind("<Button-1>", self.initialize_paintbrush)
         self.canvas.bind("<ButtonRelease-1>", self.close_paintbrush)
+
+        self.pil_image = Image.new("RGB", (400, 400), (255, 255, 255))
+        self.pil_draw = ImageDraw.Draw(self.pil_image)
 
     def initialize_paintbrush(self, event):
         """Initialize paintbrush on click"""
@@ -36,11 +39,13 @@ class ImageLabeller(tk.Tk):
         """Draw paintbrush line"""
         pos = event.x, event.y
         self.recorded_points[-1].append(pos)
-        self.canvas.create_line(
+        line_coords = [
             *self.recorded_points[-1][-2],
             *self.recorded_points[-1][-1],
-            fill=_from_rgb(self.rgb_color),
-        )
+        ]
+        assert len(line_coords) == 4
+        self.canvas.create_line(line_coords, fill=_from_rgb(self.rgb_color))
+        self.pil_draw.line(line_coords, fill=self.rgb_color)
 
     def close_paintbrush(self, event):
         """Close the paintbrush shape on click release"""
@@ -51,6 +56,7 @@ class ImageLabeller(tk.Tk):
             *self.recorded_points[-1][0],
             fill=_from_rgb(self.rgb_color),
         )
+        # self.pil_image.save("test.png")
 
     def clearall(self):
         self.canvas.delete("all")

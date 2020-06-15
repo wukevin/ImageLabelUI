@@ -7,6 +7,7 @@ Useful references:
 - https://stackoverflow.com/questions/9886274/how-can-i-convert-canvas-content-to-an-image
 - https://www.c-sharpcorner.com/blogs/basics-for-displaying-image-in-tkinter-python
 - https://stackoverflow.com/questions/15269682/python-tkinter-canvas-fail-to-bind-keyboard
+- https://stackoverflow.com/questions/42333288/how-to-delete-lines-using-tkinter
 """
 import sys
 from typing import *
@@ -44,6 +45,8 @@ class ImageLabeller(tk.Tk):
 
     def initialize_paintbrush(self, event):
         """Initialize paintbrush on click"""
+        # Each new mouse click event starts a new list of points
+        # This allows for drawing multiple shapes for a single mask
         self.recorded_points.append([(event.x, event.y)])
 
     def paintbrush(self, event):

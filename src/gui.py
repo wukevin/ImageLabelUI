@@ -6,29 +6,34 @@ Useful references:
 - https://stackoverflow.com/questions/30168896/tkinter-draw-one-pixel
 - https://stackoverflow.com/questions/9886274/how-can-i-convert-canvas-content-to-an-image
 """
+import sys
 from typing import *
 
 import numpy as np
 import tkinter as tk
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageTk
 
 import image_utils
 
 
 class ImageLabeller(tk.Tk):
-    def __init__(self, img_fname: str = "", pb_color=image_utils.ANNOT_COLORS["GREEN"]):
+    def __init__(self, img_fname: str, pb_color=image_utils.ANNOT_COLORS["GREEN"]):
         tk.Tk.__init__(self)
+        img = image_utils.load_img(img_fname)
+        height, width, _channels = img.shape
         self.rgb_color = pb_color
 
         self.recorded_points = []
-        self.canvas = tk.Canvas(width=400, height=400, bg="white", cursor="cross")
+        self.canvas = tk.Canvas(width=width, height=height, cursor="cross")
         self.canvas.pack(side="top", fill="both", expand=True)
+        self.disp_img = ImageTk.PhotoImage(Image.open(img_fname))
+        self.canvas.create_image(0, 0, image=self.disp_img, anchor=tk.NW)
 
         self.canvas.bind("<B1-Motion>", self.paintbrush)
         self.canvas.bind("<Button-1>", self.initialize_paintbrush)
         self.canvas.bind("<ButtonRelease-1>", self.close_paintbrush)
 
-        self.pil_image = Image.new("RGB", (400, 400), (255, 255, 255))
+        self.pil_image = Image.new("RGB", (width, height), (255, 255, 255))
         self.pil_draw = ImageDraw.Draw(self.pil_image)
 
     def initialize_paintbrush(self, event):

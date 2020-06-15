@@ -1,0 +1,11 @@
+name: imagelabel
+channels:
+  - anaconda
+dependencies:
+  - python=3.7.7
+  - anaconda::numpy=1.18.1
+  - anaconda::opencv=3.4.2
+  - anaconda::scipy=1.4.1
+  - anaconda::scikit-image=0.16.2
+  - anaconda::pillow=7.1.2
+  - anaconda::tk=8.6.8

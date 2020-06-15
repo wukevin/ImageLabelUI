@@ -19,8 +19,12 @@ class ImageLabeller(tk.Tk):
         self.canvas.bind("<B1-Motion>", self.paintbrush)
 
     def paintbrush(self, event):
-        x, y = event.x, event.y
-        print(x, y)
+        pos = event.x, event.y
+        self.recorded_points.append(pos)
+        if len(self.recorded_points) > 1:
+            self.canvas.create_line(
+                *self.recorded_points[-2], *self.recorded_points[-1]
+            )
 
     def clearall(self):
         self.canvas.delete("all")

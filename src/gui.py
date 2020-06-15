@@ -51,12 +51,19 @@ class ImageLabeller(tk.Tk):
         """Close the paintbrush shape on click release"""
         pos = event.x, event.y
         self.recorded_points[-1].append(pos)
-        self.canvas.create_line(
-            *self.recorded_points[-1][-1],
-            *self.recorded_points[-1][0],
-            fill=_from_rgb(self.rgb_color),
+
+        line_coords = [  # Connect first and last point
+            *self.recorded_points[-1][-1],  # Last point
+            *self.recorded_points[-1][0],  # First point
+        ]
+        self.canvas.create_line(*line_coords, fill=_from_rgb(self.rgb_color))
+        self.pil_draw.line(line_coords, fill=self.rgb_color)
+        self.pil_image.save("raw.png")
+
+        filled_image = image_utils.lift_masks_from_img(
+            np.array(self.pil_image), color_rgb=self.rgb_color, connect_iters=5,
         )
-        # self.pil_image.save("test.png")
+        image_utils.write_img(filled_image, "filled.png")
 
     def clearall(self):
         self.canvas.delete("all")

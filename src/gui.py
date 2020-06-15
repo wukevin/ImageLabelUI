@@ -30,9 +30,11 @@ class ImageLabeller(tk.Tk):
         self.disp_img = ImageTk.PhotoImage(Image.open(img_fname))
         self.canvas.create_image(0, 0, image=self.disp_img, anchor=tk.NW)
 
+        self.canvas.focus_set()
         self.canvas.bind("<B1-Motion>", self.paintbrush)
         self.canvas.bind("<Button-1>", self.initialize_paintbrush)
         self.canvas.bind("<ButtonRelease-1>", self.close_paintbrush)
+        self.canvas.bind("s", self.save_mask)
 
         self.pil_image = Image.new("RGB", (width, height), (255, 255, 255))
         self.pil_draw = ImageDraw.Draw(self.pil_image)
@@ -65,6 +67,7 @@ class ImageLabeller(tk.Tk):
         self.canvas.create_line(*line_coords, fill=_from_rgb(self.rgb_color))
         self.pil_draw.line(line_coords, fill=self.rgb_color)
 
+    def save_mask(self, event):
         filled_image = image_utils.lift_masks_from_img(
             np.array(self.pil_image), color_rgb=self.rgb_color, connect_iters=5,
         )

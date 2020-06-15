@@ -11,6 +11,7 @@ Useful references:
 """
 import os
 import sys
+import functools
 from typing import *
 
 import numpy as np
@@ -83,17 +84,20 @@ class ImageLabeller(tk.Tk):
         self.pil_draw.line(line_coords, fill=self.rgb_color)
 
     def save_mask(self, _event):
-        fname = filedialog.asksaveasfilename(
-            initialdir=os.getcwd(),
-            initialfile=os.path.splitext(os.path.basename(self.img_fname))[0]
-            + "_mask.png",
-            title="Save to file mask",
-            filetypes=(("png files", "*.png"), ("all files", "*.*")),
-        )
-        filled_image = image_utils.lift_masks_from_img(
-            np.array(self.pil_image), color_rgb=self.rgb_color, connect_iters=5,
-        )
-        image_utils.write_img(filled_image, fname)
+        try:
+            fname = filedialog.asksaveasfilename(
+                initialdir=os.getcwd(),
+                initialfile=os.path.splitext(os.path.basename(self.img_fname))[0]
+                + "_mask.png",
+                title="Save to file mask",
+                filetypes=(("png files", "*.png"), ("all files", "*.*")),
+            )
+            filled_image = image_utils.lift_masks_from_img(
+                np.array(self.pil_image), color_rgb=self.rgb_color, connect_iters=5,
+            )
+            image_utils.write_img(filled_image, fname)
+        except ValueError:
+            pass
 
     def clearall(self, _event):
         for line_id in self.tkinter_lines:
@@ -105,6 +109,7 @@ class ImageLabeller(tk.Tk):
         self.pil_draw = ImageDraw.Draw(self.pil_image)
 
 
+@functools.lru_cache(maxsize=32)
 def _from_rgb(rgb: Tuple[int, int, int]) -> str:
     """
     translates an rgb tuple of int to a tkinter friendly color code

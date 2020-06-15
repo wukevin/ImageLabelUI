@@ -5,6 +5,7 @@ Useful references:
 - https://stackoverflow.com/questions/40604233/draw-on-python-tkinter-canvas-using-mouse-and-obtain-points-to-a-list
 - https://stackoverflow.com/questions/30168896/tkinter-draw-one-pixel
 - https://stackoverflow.com/questions/9886274/how-can-i-convert-canvas-content-to-an-image
+- https://www.c-sharpcorner.com/blogs/basics-for-displaying-image-in-tkinter-python
 """
 import sys
 from typing import *
@@ -63,7 +64,6 @@ class ImageLabeller(tk.Tk):
         ]
         self.canvas.create_line(*line_coords, fill=_from_rgb(self.rgb_color))
         self.pil_draw.line(line_coords, fill=self.rgb_color)
-        self.pil_image.save("raw.png")
 
         filled_image = image_utils.lift_masks_from_img(
             np.array(self.pil_image), color_rgb=self.rgb_color, connect_iters=5,

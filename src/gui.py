@@ -6,6 +6,7 @@ Useful references:
 - https://stackoverflow.com/questions/30168896/tkinter-draw-one-pixel
 - https://stackoverflow.com/questions/9886274/how-can-i-convert-canvas-content-to-an-image
 - https://www.c-sharpcorner.com/blogs/basics-for-displaying-image-in-tkinter-python
+- https://stackoverflow.com/questions/15269682/python-tkinter-canvas-fail-to-bind-keyboard
 """
 import sys
 from typing import *
@@ -21,11 +22,12 @@ class ImageLabeller(tk.Tk):
     def __init__(self, img_fname: str, pb_color=image_utils.ANNOT_COLORS["GREEN"]):
         tk.Tk.__init__(self)
         img = image_utils.load_img(img_fname)
-        height, width, _channels = img.shape
+        self.height, self.width, _channels = img.shape
         self.rgb_color = pb_color
 
         self.recorded_points = []
-        self.canvas = tk.Canvas(width=width, height=height, cursor="cross")
+        self.tkinter_lines = []
+        self.canvas = tk.Canvas(width=self.width, height=self.height, cursor="cross")
         self.canvas.pack(side="top", fill="both", expand=True)
         self.disp_img = ImageTk.PhotoImage(Image.open(img_fname))
         self.canvas.create_image(0, 0, image=self.disp_img, anchor=tk.NW)
@@ -34,9 +36,10 @@ class ImageLabeller(tk.Tk):
         self.canvas.bind("<B1-Motion>", self.paintbrush)
         self.canvas.bind("<Button-1>", self.initialize_paintbrush)
         self.canvas.bind("<ButtonRelease-1>", self.close_paintbrush)
-        self.canvas.bind("s", self.save_mask)
+        self.canvas.bind("<Return>", self.save_mask)
+        self.canvas.bind("<BackSpace>", self.clearall)
 
-        self.pil_image = Image.new("RGB", (width, height), (255, 255, 255))
+        self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
         self.pil_draw = ImageDraw.Draw(self.pil_image)
 
     def initialize_paintbrush(self, event):
@@ -52,7 +55,8 @@ class ImageLabeller(tk.Tk):
             *self.recorded_points[-1][-1],
         ]
         assert len(line_coords) == 4
-        self.canvas.create_line(line_coords, fill=_from_rgb(self.rgb_color))
+        line_id = self.canvas.create_line(line_coords, fill=_from_rgb(self.rgb_color))
+        self.tkinter_lines.append(line_id)
         self.pil_draw.line(line_coords, fill=self.rgb_color)
 
     def close_paintbrush(self, event):
@@ -64,7 +68,8 @@ class ImageLabeller(tk.Tk):
             *self.recorded_points[-1][-1],  # Last point
             *self.recorded_points[-1][0],  # First point
         ]
-        self.canvas.create_line(*line_coords, fill=_from_rgb(self.rgb_color))
+        line_id = self.canvas.create_line(*line_coords, fill=_from_rgb(self.rgb_color))
+        self.tkinter_lines.append(line_id)
         self.pil_draw.line(line_coords, fill=self.rgb_color)
 
     def save_mask(self, event):
@@ -73,8 +78,14 @@ class ImageLabeller(tk.Tk):
         )
         image_utils.write_img(filled_image, "filled.png")
 
-    def clearall(self):
-        self.canvas.delete("all")
+    def clearall(self, _event):
+        for line_id in self.tkinter_lines:
+            self.canvas.delete(line_id)
+        # Reset record of points
+        self.tkinter_lines = []
+        self.recorded_points = []
+        self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
+        self.pil_draw = ImageDraw.Draw(self.pil_image)
 
 
 def _from_rgb(rgb: Tuple[int, int, int]) -> str:

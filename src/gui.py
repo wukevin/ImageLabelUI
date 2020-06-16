@@ -71,17 +71,22 @@ class ImageLabeller(tk.Tk):
         self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
         self.pil_draw = ImageDraw.Draw(self.pil_image)
 
+    def _get_loc_of_event(self, event) -> Tuple[int, int]:
+        """Get real location of event"""
+        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        return pos
+
     def initialize_paintbrush(self, event):
         """Initialize paintbrush on click"""
         # Each new mouse click event starts a new list of points
         # This allows for drawing multiple shapes for a single mask
-        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        pos = self._get_loc_of_event(event)
         self.recorded_points.append([pos])
         self.tkinter_lines.append([])
 
     def paintbrush(self, event):
         """Draw paintbrush line"""
-        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        pos = self._get_loc_of_event(event)
         self.recorded_points[-1].append(pos)
         line_coords = [
             *self.recorded_points[-1][-2],
@@ -94,7 +99,7 @@ class ImageLabeller(tk.Tk):
 
     def close_paintbrush(self, event):
         """Close the paintbrush shape on click release"""
-        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        pos = self._get_loc_of_event(event)
         self.recorded_points[-1].append(pos)
 
         line_coords = [  # Connect first and last point

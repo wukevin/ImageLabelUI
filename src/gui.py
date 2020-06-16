@@ -9,6 +9,7 @@ Useful references:
 - https://stackoverflow.com/questions/15269682/python-tkinter-canvas-fail-to-bind-keyboard
 - https://stackoverflow.com/questions/42333288/how-to-delete-lines-using-tkinter
 - https://stackoverflow.com/questions/38444299/trouble-with-adding-scrollbar-to-canvas-in-tkinter
+- https://stackoverflow.com/questions/11305962/python-tkinter-how-to-get-coordinates-on-scrollable-canvas
 """
 import os
 import sys
@@ -74,11 +75,12 @@ class ImageLabeller(tk.Tk):
         """Initialize paintbrush on click"""
         # Each new mouse click event starts a new list of points
         # This allows for drawing multiple shapes for a single mask
-        self.recorded_points.append([(event.x, event.y)])
+        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
+        self.recorded_points.append([pos])
 
     def paintbrush(self, event):
         """Draw paintbrush line"""
-        pos = event.x, event.y
+        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         self.recorded_points[-1].append(pos)
         line_coords = [
             *self.recorded_points[-1][-2],
@@ -91,7 +93,7 @@ class ImageLabeller(tk.Tk):
 
     def close_paintbrush(self, event):
         """Close the paintbrush shape on click release"""
-        pos = event.x, event.y
+        pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         self.recorded_points[-1].append(pos)
 
         line_coords = [  # Connect first and last point

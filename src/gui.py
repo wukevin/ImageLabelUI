@@ -77,6 +77,7 @@ class ImageLabeller(tk.Tk):
         # This allows for drawing multiple shapes for a single mask
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         self.recorded_points.append([pos])
+        self.tkinter_lines.append([])
 
     def paintbrush(self, event):
         """Draw paintbrush line"""
@@ -88,7 +89,7 @@ class ImageLabeller(tk.Tk):
         ]
         assert len(line_coords) == 4
         line_id = self.canvas.create_line(line_coords, fill=_from_rgb(self.rgb_color))
-        self.tkinter_lines.append(line_id)
+        self.tkinter_lines[-1].append(line_id)
         self.pil_draw.line(line_coords, fill=self.rgb_color)
 
     def close_paintbrush(self, event):
@@ -101,7 +102,7 @@ class ImageLabeller(tk.Tk):
             *self.recorded_points[-1][0],  # First point
         ]
         line_id = self.canvas.create_line(*line_coords, fill=_from_rgb(self.rgb_color))
-        self.tkinter_lines.append(line_id)
+        self.tkinter_lines[-1].append(line_id)
         self.pil_draw.line(line_coords, fill=self.rgb_color)
 
     def save_mask(self, _event):
@@ -121,13 +122,19 @@ class ImageLabeller(tk.Tk):
             pass
 
     def clearall(self, _event):
-        for line_id in self.tkinter_lines:
-            self.canvas.delete(line_id)
+        """Clear all strokes"""
+        for line_id_group in self.tkinter_lines:
+            for line_id in line_id_group:
+                self.canvas.delete(line_id)
         # Reset record of points
         self.tkinter_lines = []
         self.recorded_points = []
         self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
         self.pil_draw = ImageDraw.Draw(self.pil_image)
+
+    def clearlast(self, _event):
+        """Clear the last stroke"""
+        raise NotImplementedError
 
 
 @functools.lru_cache(maxsize=32)

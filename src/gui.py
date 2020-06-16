@@ -114,7 +114,7 @@ class ImageLabeller(tk.Tk):
                 filetypes=(("png files", "*.png"), ("all files", "*.*")),
             )
             filled_image = image_utils.lift_masks_from_img(
-                np.array(self.pil_image), color_rgb=self.rgb_color, connect_iters=5,
+                np.array(self.pil_image), color_rgb=self.rgb_color,
             )
             image_utils.write_img(filled_image, fname)
         except ValueError:

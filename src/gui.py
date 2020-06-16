@@ -8,6 +8,7 @@ Useful references:
 - https://www.c-sharpcorner.com/blogs/basics-for-displaying-image-in-tkinter-python
 - https://stackoverflow.com/questions/15269682/python-tkinter-canvas-fail-to-bind-keyboard
 - https://stackoverflow.com/questions/42333288/how-to-delete-lines-using-tkinter
+- https://stackoverflow.com/questions/38444299/trouble-with-adding-scrollbar-to-canvas-in-tkinter
 """
 import os
 import sys
@@ -37,9 +38,25 @@ class ImageLabeller(tk.Tk):
         self.recorded_points = []
         self.tkinter_lines = []
         self.canvas = tk.Canvas(
-            self, width=self.width, height=self.height, cursor="cross"
+            # self, width=self.width, height=self.height, cursor="cross"
+            self,
+            width=1000,
+            height=1000,
+            cursor="cross",
+            scrollregion=(0, 0, self.width, self.height),
         )
-        self.canvas.pack(side="top", fill="both", expand=True)
+        # self.canvas.pack(side="top", fill="both", expand=True)
+        self.canvas.grid(row=0, column=0)
+        self.hbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
+        self.hbar.config(command=self.canvas.xview)
+        self.hbar.grid(row=1, column=0, sticky=tk.E + tk.W)
+
+        self.vbar = tk.Scrollbar(self, orient=tk.VERTICAL)
+        self.vbar.config(command=self.canvas.yview)
+        self.vbar.grid(row=0, column=1, sticky=tk.NE + tk.SE)
+
+        self.canvas.config(xscrollcommand=self.hbar.set, yscrollcommand=self.vbar.set)
+
         self.disp_img = ImageTk.PhotoImage(Image.open(img_fname))
         self.canvas.create_image(0, 0, image=self.disp_img, anchor=tk.NW)
 

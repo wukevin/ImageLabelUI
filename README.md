@@ -7,7 +7,7 @@ UI for loading in images and allowing user to draw on them.
 2. Create the conda environment
 
 ```bash
-conda create -f environment.yml
+conda env create -f environment.yml
 ```
 ## Usage
 To run the program, make sure you have activated the `imagelabel` conda environment, then run the following, replacing `FILENAME.png` with the image file that you wish to label.

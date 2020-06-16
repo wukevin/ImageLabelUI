@@ -36,7 +36,9 @@ class ImageLabeller(tk.Tk):
 
         self.recorded_points = []
         self.tkinter_lines = []
-        self.canvas = tk.Canvas(width=self.width, height=self.height, cursor="cross")
+        self.canvas = tk.Canvas(
+            self, width=self.width, height=self.height, cursor="cross"
+        )
         self.canvas.pack(side="top", fill="both", expand=True)
         self.disp_img = ImageTk.PhotoImage(Image.open(img_fname))
         self.canvas.create_image(0, 0, image=self.disp_img, anchor=tk.NW)

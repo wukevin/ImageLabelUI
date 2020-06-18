@@ -95,6 +95,9 @@ class ImageLabeller(tk.Tk):
         assert len(line_coords) == 4
         line_id = self.canvas.create_line(line_coords, fill=_from_rgb(self.rgb_color))
         self.tkinter_lines[-1].append(line_id)
+        # TODO to enable clearing individual strokes, the cleanest way is to
+        # probably defer drawing into the pil image until we hit save, instead
+        # accumulating the points that we draw from
         self.pil_draw.line(line_coords, fill=self.rgb_color)
 
     def close_paintbrush(self, event):

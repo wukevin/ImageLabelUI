@@ -71,6 +71,8 @@ class ImageLabeller(tk.Tk):
         # This is where we actually draw to save
         self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
         self.pil_draw = ImageDraw.Draw(self.pil_image)
+        # List of tuples, each tuple is 4 values decribing a line
+        self.pil_draw_queue = []
 
     def _get_loc_of_event(self, event) -> Tuple[int, int]:
         """Get real location of event"""
@@ -99,7 +101,7 @@ class ImageLabeller(tk.Tk):
         # TODO to enable clearing individual strokes, the cleanest way is to
         # probably defer drawing into the pil image until we hit save, instead
         # accumulating the points that we draw from
-        self.pil_draw.line(line_coords, fill=self.rgb_color)
+        self.pil_draw_queue.append(line_coords)
 
     def close_paintbrush(self, event):
         """Close the paintbrush shape on click release"""
@@ -110,12 +112,18 @@ class ImageLabeller(tk.Tk):
             *self.recorded_points[-1][-1],  # Last point
             *self.recorded_points[-1][0],  # First point
         ]
+        assert len(line_coords) == 4
         line_id = self.canvas.create_line(*line_coords, fill=_from_rgb(self.rgb_color))
         self.tkinter_lines[-1].append(line_id)
-        self.pil_draw.line(line_coords, fill=self.rgb_color)
+        self.pil_draw_queue.append(line_coords)
 
     def save_mask(self, _event):
-        try:
+        # First create the mask
+        for line in self.pil_draw_queue:
+            assert len(line) == 4
+            self.pil_draw.line(line, fill=self.rgb_color)
+
+        try:  # Try to save the mask
             fname = filedialog.asksaveasfilename(
                 initialdir=os.getcwd(),
                 initialfile=os.path.splitext(os.path.basename(self.img_fname))[0]

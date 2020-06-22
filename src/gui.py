@@ -13,6 +13,7 @@ Useful references:
 """
 import os
 import sys
+import logging
 import functools
 from typing import *
 
@@ -38,6 +39,8 @@ class ImageLabeller(tk.Tk):
 
         self.recorded_points = []
         self.tkinter_lines = []
+        # List of tuples, each tuple is 4 values decribing a line
+        self.pil_draw_queue = []
         self.canvas = tk.Canvas(
             # self, width=self.width, height=self.height, cursor="cross"
             self,
@@ -68,12 +71,6 @@ class ImageLabeller(tk.Tk):
         self.canvas.bind("<Return>", self.save_mask)
         self.canvas.bind("<d>", self.clearlast)
         self.canvas.bind("<D>", self.clearall)
-
-        # This is where we actually draw to save
-        self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
-        self.pil_draw = ImageDraw.Draw(self.pil_image)
-        # List of tuples, each tuple is 4 values decribing a line
-        self.pil_draw_queue = []
 
     def _get_loc_of_event(self, event) -> Tuple[int, int]:
         """Get real location of event"""
@@ -120,10 +117,13 @@ class ImageLabeller(tk.Tk):
 
     def save_mask(self, _event):
         # First create the mask
+        logging.info(f"Creating underlying mask image")
+        pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
+        pil_draw = ImageDraw.Draw(pil_image)
         for line_group in self.pil_draw_queue:
             for line in line_group:
                 assert len(line) == 4
-                self.pil_draw.line(line, fill=self.rgb_color)
+                pil_draw.line(line, fill=self.rgb_color)
 
         try:  # Try to save the mask
             fname = filedialog.asksaveasfilename(
@@ -134,13 +134,9 @@ class ImageLabeller(tk.Tk):
                 filetypes=(("png files", "*.png"), ("all files", "*.*")),
             )
             filled_image = image_utils.lift_masks_from_img(
-                np.array(self.pil_image), color_rgb=self.rgb_color,
+                np.array(pil_image), color_rgb=self.rgb_color,
             )
             image_utils.write_img(filled_image, fname)
-            self.pil_image = Image.new(
-                "RGB", (self.width, self.height), (255, 255, 255)
-            )
-            self.pil_draw = ImageDraw.Draw(self.pil_image)
         except ValueError:
             pass
 

@@ -68,6 +68,7 @@ class ImageLabeller(tk.Tk):
         self.canvas.bind("<Return>", self.save_mask)
         self.canvas.bind("<BackSpace>", self.clearall)
 
+        # This is where we actually draw to save
         self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
         self.pil_draw = ImageDraw.Draw(self.pil_image)
 
@@ -146,6 +147,13 @@ class ImageLabeller(tk.Tk):
 
 
 class ImageBBoxLabeller(ImageLabeller):
+    def __init__(self, *args):
+        """Call the parent initializer"""
+        super().__init__(*args)
+
+        self.pil_image = Image.open(self.img_fname)
+        self.pil_draw = ImageDraw.Draw(self.pil_image)
+
     def initialize_paintbrush(self, event):
         """Initialize the rectangle tool"""
         pos = self._get_loc_of_event(event)
@@ -195,6 +203,11 @@ class ImageBBoxLabeller(ImageLabeller):
     def clearall(self, _event):
         """Clear all drawn boxes"""
         for line_id in self.tkinter_lines:
+            self.canvas.delete(line_id)
+
+    def clearlast(self, event):
+        """Clear the last stroke"""
+        for line_id in self.tkinter_lines[-4:]:
             self.canvas.delete(line_id)
 
 

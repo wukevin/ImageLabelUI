@@ -20,6 +20,7 @@ def build_parser():
         description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("image", type=str, help="Image to load")
+    parser.add_argument("--mode", type=str, choices=("mask", "box"), default="mask")
     return parser
 
 
@@ -28,7 +29,10 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    app = gui.ImageLabeller(args.image)
+    if args.mode == "mask":
+        app = gui.ImageLabeller(args.image)
+    elif args.mode == "box":
+        app = gui.ImageBBoxLabeller(args.image)
     app.mainloop()
 
 

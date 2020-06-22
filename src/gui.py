@@ -145,6 +145,40 @@ class ImageLabeller(tk.Tk):
         raise NotImplementedError
 
 
+class ImageBBoxLabeller(ImageLabeller):
+    def initialize_paintbrush(self, event):
+        """Initialize the rectangle tool"""
+        pos = self._get_loc_of_event(event)
+        self.recorded_points.append(
+            [pos]
+        )  # Each list in recorded points stores a pair of points
+
+    def _draw_box(self, vertices: Tuple[Tuple[int, int], Tuple[int, int]]):
+        """Given a single pair of points, draw the corresponding box"""
+        (i_x, i_y), (j_x, j_y) = vertices
+        min_x, max_x = min(i_x, j_x), max(i_x, j_x)
+        min_y, max_y = min(i_y, j_y), max(i_y, j_y)
+
+        left_edge_id = self.canvas.create_line(min_x, min_y, min_x, max_y)
+        top_edge_id = self.cavnas.create_line(min_x, max_y, max_x, max_y)
+        right_edge_id = self.canvas.create_line(max_x, max_y, max_x, min_y)
+        bottom_edge_id = self.canvas.create_line(max_x, min_y, min_x, min_y)
+        self.tkinter_lines.extend(
+            [left_edge_id, top_edge_id, right_edge_id, bottom_edge_id]
+        )
+
+    def _draw_boxes(self):
+        """Draw the boxes decribed by self.recorded_points"""
+        for pair in self.pos:
+            assert len(pair) == 2, f"Got malformd pair: {pair}"
+            self._draw_box(pair)
+
+    def paintbrush(self, event):
+        """Get updated position of cursor and draw the new bounding box"""
+        pos = self._get_loc_of_event(event)
+        self.recorded_points[-1][-1] = pos  # Update outer corner
+
+
 @functools.lru_cache(maxsize=32)
 def _from_rgb(rgb: Tuple[int, int, int]) -> str:
     """

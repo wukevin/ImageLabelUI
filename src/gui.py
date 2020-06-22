@@ -150,7 +150,7 @@ class ImageBBoxLabeller(ImageLabeller):
         """Initialize the rectangle tool"""
         pos = self._get_loc_of_event(event)
         self.recorded_points.append(
-            [pos]
+            [pos, pos]
         )  # Each list in recorded points stores a pair of points
 
     def _draw_box(self, vertices: Tuple[Tuple[int, int], Tuple[int, int]]):
@@ -159,17 +159,26 @@ class ImageBBoxLabeller(ImageLabeller):
         min_x, max_x = min(i_x, j_x), max(i_x, j_x)
         min_y, max_y = min(i_y, j_y), max(i_y, j_y)
 
-        left_edge_id = self.canvas.create_line(min_x, min_y, min_x, max_y)
-        top_edge_id = self.cavnas.create_line(min_x, max_y, max_x, max_y)
-        right_edge_id = self.canvas.create_line(max_x, max_y, max_x, min_y)
-        bottom_edge_id = self.canvas.create_line(max_x, min_y, min_x, min_y)
+        left_edge_id = self.canvas.create_line(
+            min_x, min_y, min_x, max_y, fill=_from_rgb(self.rgb_color)
+        )
+        top_edge_id = self.canvas.create_line(
+            min_x, max_y, max_x, max_y, fill=_from_rgb(self.rgb_color)
+        )
+        right_edge_id = self.canvas.create_line(
+            max_x, max_y, max_x, min_y, fill=_from_rgb(self.rgb_color)
+        )
+        bottom_edge_id = self.canvas.create_line(
+            max_x, min_y, min_x, min_y, fill=_from_rgb(self.rgb_color)
+        )
         self.tkinter_lines.extend(
             [left_edge_id, top_edge_id, right_edge_id, bottom_edge_id]
         )
 
     def _draw_boxes(self):
         """Draw the boxes decribed by self.recorded_points"""
-        for pair in self.pos:
+        self.clearall(None)
+        for pair in self.recorded_points:
             assert len(pair) == 2, f"Got malformd pair: {pair}"
             self._draw_box(pair)
 
@@ -177,6 +186,16 @@ class ImageBBoxLabeller(ImageLabeller):
         """Get updated position of cursor and draw the new bounding box"""
         pos = self._get_loc_of_event(event)
         self.recorded_points[-1][-1] = pos  # Update outer corner
+
+        self._draw_boxes()
+
+    def close_paintbrush(self, event):
+        """Close paintbrush on click release"""
+
+    def clearall(self, _event):
+        """Clear all drawn boxes"""
+        for line_id in self.tkinter_lines:
+            self.canvas.delete(line_id)
 
 
 @functools.lru_cache(maxsize=32)

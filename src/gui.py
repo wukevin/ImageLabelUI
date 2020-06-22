@@ -137,6 +137,10 @@ class ImageLabeller(tk.Tk):
                 np.array(self.pil_image), color_rgb=self.rgb_color,
             )
             image_utils.write_img(filled_image, fname)
+            self.pil_image = Image.new(
+                "RGB", (self.width, self.height), (255, 255, 255)
+            )
+            self.pil_draw = ImageDraw.Draw(self.pil_image)
         except ValueError:
             pass
 
@@ -148,8 +152,7 @@ class ImageLabeller(tk.Tk):
         # Reset record of points
         self.tkinter_lines = []
         self.recorded_points = []
-        self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
-        self.pil_draw = ImageDraw.Draw(self.pil_image)
+        self.pil_draw_queue = []
 
     def clearlast(self, _event):
         """Clear the last stroke"""

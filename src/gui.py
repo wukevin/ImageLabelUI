@@ -66,7 +66,8 @@ class ImageLabeller(tk.Tk):
         self.canvas.bind("<Button-1>", self.initialize_paintbrush)
         self.canvas.bind("<ButtonRelease-1>", self.close_paintbrush)
         self.canvas.bind("<Return>", self.save_mask)
-        self.canvas.bind("<BackSpace>", self.clearall)
+        self.canvas.bind("<d>", self.clearlast)
+        self.canvas.bind("<D>", self.clearall)
 
         # This is where we actually draw to save
         self.pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
@@ -86,6 +87,9 @@ class ImageLabeller(tk.Tk):
         pos = self._get_loc_of_event(event)
         self.recorded_points.append([pos])
         self.tkinter_lines.append([])
+        self.pil_draw_queue.append([])
+
+        assert len(self.tkinter_lines) == len(self.pil_draw_queue)
 
     def paintbrush(self, event):
         """Draw paintbrush line"""
@@ -98,10 +102,7 @@ class ImageLabeller(tk.Tk):
         assert len(line_coords) == 4
         line_id = self.canvas.create_line(line_coords, fill=_from_rgb(self.rgb_color))
         self.tkinter_lines[-1].append(line_id)
-        # TODO to enable clearing individual strokes, the cleanest way is to
-        # probably defer drawing into the pil image until we hit save, instead
-        # accumulating the points that we draw from
-        self.pil_draw_queue.append(line_coords)
+        self.pil_draw_queue[-1].append(line_coords)
 
     def close_paintbrush(self, event):
         """Close the paintbrush shape on click release"""
@@ -115,13 +116,14 @@ class ImageLabeller(tk.Tk):
         assert len(line_coords) == 4
         line_id = self.canvas.create_line(*line_coords, fill=_from_rgb(self.rgb_color))
         self.tkinter_lines[-1].append(line_id)
-        self.pil_draw_queue.append(line_coords)
+        self.pil_draw_queue[-1].append(line_coords)
 
     def save_mask(self, _event):
         # First create the mask
-        for line in self.pil_draw_queue:
-            assert len(line) == 4
-            self.pil_draw.line(line, fill=self.rgb_color)
+        for line_group in self.pil_draw_queue:
+            for line in line_group:
+                assert len(line) == 4
+                self.pil_draw.line(line, fill=self.rgb_color)
 
         try:  # Try to save the mask
             fname = filedialog.asksaveasfilename(
@@ -151,7 +153,12 @@ class ImageLabeller(tk.Tk):
 
     def clearlast(self, _event):
         """Clear the last stroke"""
-        raise NotImplementedError
+        if self.pil_draw_queue:
+            self.pil_draw_queue.pop(-1)
+            self.recorded_points.pop(-1)
+
+            for line_id in self.tkinter_lines.pop(-1):
+                self.canvas.delete(line_id)
 
 
 class ImageBBoxLabeller(ImageLabeller):

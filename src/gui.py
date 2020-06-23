@@ -161,68 +161,85 @@ class ImageLabeller(tk.Tk):
 
 
 class ImageBBoxLabeller(ImageLabeller):
-    def __init__(self, *args):
-        """Call the parent initializer"""
-        super().__init__(*args)
-
-        self.pil_image = Image.open(self.img_fname)
-        self.pil_draw = ImageDraw.Draw(self.pil_image)
-
     def initialize_paintbrush(self, event):
         """Initialize the rectangle tool"""
         pos = self._get_loc_of_event(event)
         self.recorded_points.append(
             [pos, pos]
         )  # Each list in recorded points stores a pair of points
+        self.tkinter_lines.append([])
 
-    def _draw_box(self, vertices: Tuple[Tuple[int, int], Tuple[int, int]]):
+    def _get_box_lines(self, vertices: Tuple[Tuple[int, int], Tuple[int, int]]):
         """Given a single pair of points, draw the corresponding box"""
         (i_x, i_y), (j_x, j_y) = vertices
         min_x, max_x = min(i_x, j_x), max(i_x, j_x)
         min_y, max_y = min(i_y, j_y), max(i_y, j_y)
 
-        left_edge_id = self.canvas.create_line(
-            min_x, min_y, min_x, max_y, fill=_from_rgb(self.rgb_color)
-        )
-        top_edge_id = self.canvas.create_line(
-            min_x, max_y, max_x, max_y, fill=_from_rgb(self.rgb_color)
-        )
-        right_edge_id = self.canvas.create_line(
-            max_x, max_y, max_x, min_y, fill=_from_rgb(self.rgb_color)
-        )
-        bottom_edge_id = self.canvas.create_line(
-            max_x, min_y, min_x, min_y, fill=_from_rgb(self.rgb_color)
-        )
-        self.tkinter_lines.extend(
-            [left_edge_id, top_edge_id, right_edge_id, bottom_edge_id]
-        )
-
-    def _draw_boxes(self):
-        """Draw the boxes decribed by self.recorded_points"""
-        self.clearall(None)
-        for pair in self.recorded_points:
-            assert len(pair) == 2, f"Got malformd pair: {pair}"
-            self._draw_box(pair)
+        left_edge = min_x, min_y, min_x, max_y
+        top_edge = min_x, max_y, max_x, max_y
+        right_edge = max_x, max_y, max_x, min_y
+        bottom_edge = max_x, min_y, min_x, min_y
+        return left_edge, top_edge, right_edge, bottom_edge
 
     def paintbrush(self, event):
         """Get updated position of cursor and draw the new bounding box"""
         pos = self._get_loc_of_event(event)
-        self.recorded_points[-1][-1] = pos  # Update outer corner
+        self.recorded_points[-1][-1] = pos  # Update outer corner of the current box
 
-        self._draw_boxes()
+        self.clearlast(None)
+        pair = self.recorded_points[-1]
+        assert len(pair) == 2
+        box_lines = self._get_box_lines(pair)
+        assert len(box_lines) == 4
+        for line in box_lines:
+            line_id = self.canvas.create_line(line, fill=_from_rgb(self.rgb_color))
+            self.tkinter_lines[-1].append(line_id)
 
     def close_paintbrush(self, event):
         """Close paintbrush on click release"""
+        pos = self._get_loc_of_event(event)
+
+        pair = self.recorded_points[-1]
+        assert len(pair) == 2
+        box_lines = self._get_box_lines(pair)
+        assert len(box_lines) == 4
+
+        self.pil_draw_queue.append(box_lines)
+
+    def save_mask(self, _event):
+        logging.info(f"Creating underlying mask image")
+        # pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
+        pil_image = Image.open(self.img_fname)
+        pil_draw = ImageDraw.Draw(pil_image)
+        for line_group in self.pil_draw_queue:
+            for line in line_group:
+                assert len(line) == 4
+                pil_draw.line(line, fill=self.rgb_color)
+
+        try:  # Try to save the mask
+            fname = filedialog.asksaveasfilename(
+                initialdir=os.getcwd(),
+                initialfile=os.path.splitext(os.path.basename(self.img_fname))[0]
+                + "_bbox.png",
+                title="Save to file mask",
+                filetypes=(("png files", "*.png"), ("all files", "*.*")),
+            )
+            image_utils.write_img(np.array(pil_image), fname)
+        except ValueError:
+            pass
 
     def clearall(self, _event):
         """Clear all drawn boxes"""
         for line_id in self.tkinter_lines:
             self.canvas.delete(line_id)
+        self.pil_draw_queue = []
+        self.tkinter_lines = []
 
     def clearlast(self, event):
         """Clear the last stroke"""
-        for line_id in self.tkinter_lines[-4:]:
+        for line_id in self.tkinter_lines[-1]:
             self.canvas.delete(line_id)
+        self.tkinter_lines[-1] = []  # Clear out the last item
 
 
 @functools.lru_cache(maxsize=32)

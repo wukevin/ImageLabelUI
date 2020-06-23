@@ -161,13 +161,22 @@ class ImageLabeller(tk.Tk):
 
 
 class ImageBBoxLabeller(ImageLabeller):
+    """
+    Draws bounding boxes on images.
+
+    Programmatic strategy here is to use recorded_points to maintain the outer
+    vertices of the rectangle. When mouse is released, the final rectangle
+    is then saved to the buffer of lines we need to draw on the final output
+    pil_draw_queue.
+    """
+
     def initialize_paintbrush(self, event):
         """Initialize the rectangle tool"""
         pos = self._get_loc_of_event(event)
         self.recorded_points.append(
             [pos, pos]
         )  # Each list in recorded points stores a pair of points
-        self.tkinter_lines.append([])
+        self.tkinter_lines.append([])  # Grows and shrinks with mouse drag
 
     def _get_box_lines(self, vertices: Tuple[Tuple[int, int], Tuple[int, int]]):
         """Given a single pair of points, draw the corresponding box"""
@@ -186,7 +195,7 @@ class ImageBBoxLabeller(ImageLabeller):
         pos = self._get_loc_of_event(event)
         self.recorded_points[-1][-1] = pos  # Update outer corner of the current box
 
-        self.clearlast(None)
+        self.clearlast(None, still_dragging=True)
         pair = self.recorded_points[-1]
         assert len(pair) == 2
         box_lines = self._get_box_lines(pair)
@@ -196,8 +205,12 @@ class ImageBBoxLabeller(ImageLabeller):
             self.tkinter_lines[-1].append(line_id)
 
     def close_paintbrush(self, event):
-        """Close paintbrush on click release"""
+        """
+        Close paintbrush on click release, writing into the queue of lines we write
+        to output file
+        """
         pos = self._get_loc_of_event(event)
+        self.recorded_points[-1][-1] = pos
 
         pair = self.recorded_points[-1]
         assert len(pair) == 2
@@ -208,7 +221,6 @@ class ImageBBoxLabeller(ImageLabeller):
 
     def save_mask(self, _event):
         logging.info(f"Creating underlying mask image")
-        # pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
         pil_image = Image.open(self.img_fname)
         pil_draw = ImageDraw.Draw(pil_image)
         for line_group in self.pil_draw_queue:
@@ -235,11 +247,13 @@ class ImageBBoxLabeller(ImageLabeller):
         self.pil_draw_queue = []
         self.tkinter_lines = []
 
-    def clearlast(self, event):
+    def clearlast(self, _event, still_dragging: bool = False):
         """Clear the last stroke"""
         for line_id in self.tkinter_lines[-1]:
             self.canvas.delete(line_id)
         self.tkinter_lines[-1] = []  # Clear out the last item
+        if not still_dragging:
+            self.pil_draw_queue.pop(-1)
 
 
 @functools.lru_cache(maxsize=32)

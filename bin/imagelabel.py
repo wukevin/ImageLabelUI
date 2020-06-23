@@ -20,7 +20,7 @@ def build_parser():
         description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("image", type=str, help="Image to load")
-    parser.add_argument("--mode", type=str, choices=("mask", "box"), default="mask")
+    parser.add_argument("--mode", type=str, choices=("mask", "bbox"), default="mask")
     return parser
 
 
@@ -31,8 +31,10 @@ def main():
 
     if args.mode == "mask":
         app = gui.ImageLabeller(args.image)
-    elif args.mode == "box":
+    elif args.mode == "bbox":
         app = gui.ImageBBoxLabeller(args.image)
+    else:
+        raise ValueError(f"Unrecognized mode: {args.mode}")
     app.mainloop()
 
 

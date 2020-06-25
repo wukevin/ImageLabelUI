@@ -30,7 +30,13 @@ class ImageLabeller(tk.Tk):
     Image labeller for a single image
     """
 
-    def __init__(self, img_fname: str, pb_color=image_utils.ANNOT_COLORS["GREEN"]):
+    def __init__(
+        self,
+        img_fname: str,
+        pb_color=image_utils.ANNOT_COLORS["GREEN"],
+        width: int = 750,
+        height: int = 750,
+    ):
         tk.Tk.__init__(self)
         self.img_fname = img_fname
         img = image_utils.load_img(img_fname)
@@ -44,8 +50,8 @@ class ImageLabeller(tk.Tk):
         self.canvas = tk.Canvas(
             # self, width=self.width, height=self.height, cursor="cross"
             self,
-            width=1000,
-            height=1000,
+            width=width,
+            height=height,
             cursor="cross",
             scrollregion=(0, 0, self.width, self.height),
         )

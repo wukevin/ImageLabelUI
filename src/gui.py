@@ -92,6 +92,11 @@ class ImageLabeller(tk.Tk):
         win.title("Minimap")
         win.geometry("400x400")
 
+        img = Image.open(self.img_fname)
+        img_smaller = img.resize((400, 400), Image.ANTIALIAS)
+        print(img_smaller)
+        tk.Label(win, image=ImageTk.PhotoImage(img_smaller)).pack()
+
     def initialize_paintbrush(self, event):
         """Initialize paintbrush on click"""
         # Each new mouse click event starts a new list of points

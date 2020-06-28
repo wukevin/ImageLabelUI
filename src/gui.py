@@ -77,11 +77,20 @@ class ImageLabeller(tk.Tk):
         self.canvas.bind("<Return>", self.save_mask)
         self.canvas.bind("<d>", self.clearlast)
         self.canvas.bind("<D>", self.clearall)
+        self.canvas.bind("<m>", self.open_new_window)
 
     def _get_loc_of_event(self, event) -> Tuple[int, int]:
         """Get real location of event"""
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         return pos
+
+    def open_new_window(self, event):
+        """
+        Open a new window to display a minimap of where we are
+        """
+        win = tk.Toplevel(self)
+        win.title("Minimap")
+        win.geometry("400x400")
 
     def initialize_paintbrush(self, event):
         """Initialize paintbrush on click"""

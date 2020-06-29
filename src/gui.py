@@ -93,9 +93,12 @@ class ImageLabeller(tk.Tk):
         win.geometry("400x400")
 
         img = Image.open(self.img_fname)
-        img_smaller = img.resize((400, 400), Image.ANTIALIAS)
-        print(img_smaller)
-        tk.Label(win, image=ImageTk.PhotoImage(img_smaller)).pack()
+        img = ImageTk.PhotoImage(img.resize((400, 400), Image.ANTIALIAS))
+        # img = ImageTk.PhotoImage(img)  # Dummy for no resizing
+        lbl2 = tk.Label(win, image=img)
+        lbl2.image = img
+        lbl2.pack()
+        win.mainloop()
 
     def initialize_paintbrush(self, event):
         """Initialize paintbrush on click"""

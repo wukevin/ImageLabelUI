@@ -42,6 +42,8 @@ class ImageLabeller(tk.Tk):
         img = image_utils.load_img(img_fname)
         self.height, self.width, _channels = img.shape
         self.rgb_color = pb_color
+        self.win_width = width
+        self.win_height = height
 
         self.recorded_points = []
         self.tkinter_lines = []
@@ -92,11 +94,28 @@ class ImageLabeller(tk.Tk):
         win.title("Minimap")
         win.geometry("400x400")
 
-        img = Image.open(self.img_fname)
-        img = ImageTk.PhotoImage(img.resize((400, 400), Image.ANTIALIAS))
-        # img = ImageTk.PhotoImage(img)  # Dummy for no resizing
-        lbl2 = tk.Label(win, image=img)
-        lbl2.image = img
+        # Determine currrent viewport
+        top_left = (self.canvas.canvasx(0), self.canvas.canvasy(0))
+        top_right = (self.canvas.canvasx(self.win_width), self.canvas.canvasy(0))
+        bottom_right = (
+            self.canvas.canvasx(self.win_width),
+            self.canvas.canvasy(self.win_height),
+        )
+        bottom_left = (self.canvas.canvasx(0), self.canvas.canvasy(self.win_height))
+
+        # Open the image and draw viewport
+        img = Image.open(self.img_fname)  # PIL PngImageFile
+        img_draw = ImageDraw.Draw(img)
+        stroke_width = 18
+        img_draw.line((*top_left, *top_right), fill="red", width=stroke_width)
+        img_draw.line((*top_right, *bottom_right), fill="red", width=stroke_width)
+        img_draw.line((*bottom_right, *bottom_left), fill="red", width=stroke_width)
+        img_draw.line((*bottom_left, *top_left), fill="red", width=stroke_width)
+        # img.show()  # Alternative presentation
+        # Resize and display
+        photo_img = ImageTk.PhotoImage(img.resize((400, 400), Image.ANTIALIAS))
+        lbl2 = tk.Label(win, image=photo_img)
+        lbl2.image = photo_img
         lbl2.pack()
         win.mainloop()
 

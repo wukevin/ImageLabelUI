@@ -1,5 +1,6 @@
 """
-Main thread
+Program for annotating images with either bounding boxes
+or closed polygons.
 """
 
 import os
@@ -43,12 +44,14 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
+    # Determine the app class based on args
     if args.mode == "mask":
         app_class = gui.ImageLabeller
     elif args.mode == "bbox":
         app_class = gui.ImageBBoxLabeller
     else:
         raise ValueError(f"Unrecognized mode: {args.mode}")
+
     app = app_class(
         args.image,
         pb_color=image_utils.ANNOT_COLORS[args.color],

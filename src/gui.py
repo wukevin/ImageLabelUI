@@ -34,8 +34,8 @@ class ImageLabeller(tk.Tk):
         self,
         img_fname: str,
         pb_color=image_utils.ANNOT_COLORS["GREEN"],
-        width: int = 750,
-        height: int = 750,
+        width: int = 750,  # Width of the primary window
+        height: int = 750,  # Height of the primary window
     ):
         tk.Tk.__init__(self)
         self.img_fname = img_fname
@@ -50,14 +50,12 @@ class ImageLabeller(tk.Tk):
         # List of tuples, each tuple is 4 values decribing a line
         self.pil_draw_queue = []
         self.canvas = tk.Canvas(
-            # self, width=self.width, height=self.height, cursor="cross"
             self,
             width=width,
             height=height,
             cursor="cross",
             scrollregion=(0, 0, self.width, self.height),
         )
-        # self.canvas.pack(side="top", fill="both", expand=True)
         self.canvas.grid(row=0, column=0)
         self.hbar = tk.Scrollbar(self, orient=tk.HORIZONTAL)
         self.hbar.config(command=self.canvas.xview)
@@ -166,7 +164,7 @@ class ImageLabeller(tk.Tk):
 
     def save_mask(self, _event):
         # First create the mask
-        logging.info(f"Creating underlying mask image")
+        logging.info("Creating underlying mask image")
         pil_image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
         pil_draw = ImageDraw.Draw(pil_image)
         for line_group in self.pil_draw_queue:
@@ -227,18 +225,6 @@ class ImageBBoxLabeller(ImageLabeller):
         )  # Each list in recorded points stores a pair of points
         self.tkinter_lines.append([])  # Grows and shrinks with mouse drag
 
-    def _get_box_lines(self, vertices: Tuple[Tuple[int, int], Tuple[int, int]]):
-        """Given a single pair of points, draw the corresponding box"""
-        (i_x, i_y), (j_x, j_y) = vertices
-        min_x, max_x = min(i_x, j_x), max(i_x, j_x)
-        min_y, max_y = min(i_y, j_y), max(i_y, j_y)
-
-        left_edge = min_x, min_y, min_x, max_y
-        top_edge = min_x, max_y, max_x, max_y
-        right_edge = max_x, max_y, max_x, min_y
-        bottom_edge = max_x, min_y, min_x, min_y
-        return left_edge, top_edge, right_edge, bottom_edge
-
     def paintbrush(self, event):
         """Get updated position of cursor and draw the new bounding box"""
         pos = self._get_loc_of_event(event)
@@ -247,7 +233,7 @@ class ImageBBoxLabeller(ImageLabeller):
         self.clearlast(None, still_dragging=True)
         pair = self.recorded_points[-1]
         assert len(pair) == 2
-        box_lines = self._get_box_lines(pair)
+        box_lines = _get_box_lines(pair)
         assert len(box_lines) == 4
         for line in box_lines:
             line_id = self.canvas.create_line(line, fill=_from_rgb(self.rgb_color))
@@ -263,7 +249,7 @@ class ImageBBoxLabeller(ImageLabeller):
 
         pair = self.recorded_points[-1]
         assert len(pair) == 2
-        box_lines = self._get_box_lines(pair)
+        box_lines = _get_box_lines(pair)
         assert len(box_lines) == 4
 
         self.pil_draw_queue.append(box_lines)
@@ -312,3 +298,16 @@ def _from_rgb(rgb: Tuple[int, int, int]) -> str:
     https://stackoverflow.com/questions/51591456/can-i-use-rgb-in-tkinter
     """
     return "#%02x%02x%02x" % rgb
+
+
+def _get_box_lines(vertices: Tuple[Tuple[int, int], Tuple[int, int]]):
+    """Given a pair of points, draw the corresponding box"""
+    (i_x, i_y), (j_x, j_y) = vertices
+    min_x, max_x = min(i_x, j_x), max(i_x, j_x)
+    min_y, max_y = min(i_y, j_y), max(i_y, j_y)
+
+    left_edge = min_x, min_y, min_x, max_y
+    top_edge = min_x, max_y, max_x, max_y
+    right_edge = max_x, max_y, max_x, min_y
+    bottom_edge = max_x, min_y, min_x, min_y
+    return left_edge, top_edge, right_edge, bottom_edge

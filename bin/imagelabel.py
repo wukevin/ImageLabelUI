@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Program for annotating images with either bounding boxes
 or closed polygons.

@@ -79,14 +79,14 @@ class ImageLabeller(tk.Tk):
         self.canvas.bind("<Return>", self.save_mask)
         self.canvas.bind("<d>", self.clearlast)
         self.canvas.bind("<D>", self.clearall)
-        self.canvas.bind("<m>", self.open_new_window)
+        self.canvas.bind("<m>", self.open_minimap)
 
     def _get_loc_of_event(self, event) -> Tuple[int, int]:
         """Get real location of event"""
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         return pos
 
-    def open_new_window(self, event):
+    def open_minimap(self, event):
         """
         Open a new window to display a minimap of where we are
         """
@@ -106,7 +106,8 @@ class ImageLabeller(tk.Tk):
         # Open the image and draw viewport
         img = Image.open(self.img_fname)  # PIL PngImageFile
         img_draw = ImageDraw.Draw(img)
-        stroke_width = 18
+        img_width, img_height = img.size
+        stroke_width = 2 * int(max(img_width, img_height) / 400)
         img_draw.line((*top_left, *top_right), fill="red", width=stroke_width)
         img_draw.line((*top_right, *bottom_right), fill="red", width=stroke_width)
         img_draw.line((*bottom_right, *bottom_left), fill="red", width=stroke_width)

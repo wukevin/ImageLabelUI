@@ -108,10 +108,15 @@ class ImageLabeller(tk.Tk):
         img_draw = ImageDraw.Draw(img)
         img_width, img_height = img.size
         stroke_width = 2 * int(max(img_width, img_height) / 400)
-        img_draw.line((*top_left, *top_right), fill="red", width=stroke_width)
-        img_draw.line((*top_right, *bottom_right), fill="red", width=stroke_width)
-        img_draw.line((*bottom_right, *bottom_left), fill="red", width=stroke_width)
-        img_draw.line((*bottom_left, *top_left), fill="red", width=stroke_width)
+        stroke_color = (0, 255, 0)
+        img_draw.line((*top_left, *top_right), fill=stroke_color, width=stroke_width)
+        img_draw.line(
+            (*top_right, *bottom_right), fill=stroke_color, width=stroke_width
+        )
+        img_draw.line(
+            (*bottom_right, *bottom_left), fill=stroke_color, width=stroke_width
+        )
+        img_draw.line((*bottom_left, *top_left), fill=stroke_color, width=stroke_width)
         # img.show()  # Alternative presentation
         # Resize and display
         photo_img = ImageTk.PhotoImage(img.resize((400, 400), Image.ANTIALIAS))

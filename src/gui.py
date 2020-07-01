@@ -69,7 +69,8 @@ class ImageLabeller(tk.Tk):
 
         self.canvas.config(xscrollcommand=self.hbar.set, yscrollcommand=self.vbar.set)
 
-        self.disp_img = ImageTk.PhotoImage(Image.open(img_fname))
+        self.img = Image.open(img_fname)
+        self.disp_img = ImageTk.PhotoImage(self.img)
         self.canvas.create_image(0, 0, image=self.disp_img, anchor=tk.NW)
 
         self.canvas.focus_set()
@@ -86,7 +87,7 @@ class ImageLabeller(tk.Tk):
         pos = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         return pos
 
-    def open_minimap(self, event):
+    def open_minimap(self, _event):
         """
         Open a new window to display a minimap of where we are
         """
@@ -104,9 +105,9 @@ class ImageLabeller(tk.Tk):
         bottom_left = (self.canvas.canvasx(0), self.canvas.canvasy(self.win_height))
 
         # Open the image and draw viewport
-        img = Image.open(self.img_fname)  # PIL PngImageFile
-        img_draw = ImageDraw.Draw(img)
+        img = self.img.copy()
         img_width, img_height = img.size
+        img_draw = ImageDraw.Draw(img)
         stroke_width = 2 * int(max(img_width, img_height) / 400)
         stroke_color = (0, 255, 0)
         img_draw.line((*top_left, *top_right), fill=stroke_color, width=stroke_width)
@@ -117,7 +118,7 @@ class ImageLabeller(tk.Tk):
             (*bottom_right, *bottom_left), fill=stroke_color, width=stroke_width
         )
         img_draw.line((*bottom_left, *top_left), fill=stroke_color, width=stroke_width)
-        # img.show()  # Alternative presentation
+
         # Resize and display
         photo_img = ImageTk.PhotoImage(img.resize((400, 400), Image.ANTIALIAS))
         lbl2 = tk.Label(win, image=photo_img)
@@ -268,8 +269,8 @@ class ImageBBoxLabeller(ImageLabeller):
         self.pil_draw_queue.append(box_lines)
 
     def save_mask(self, _event):
-        logging.info(f"Creating underlying mask image")
-        pil_image = Image.open(self.img_fname)
+        logging.info(f"Creating underlying bounding boxes")
+        pil_image = self.img.copy()
         pil_draw = ImageDraw.Draw(pil_image)
         for line_group in self.pil_draw_queue:
             for line in line_group:

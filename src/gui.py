@@ -76,6 +76,7 @@ class ImageLabeller(tk.Tk):
         self.canvas.bind("<Button-1>", self.initialize_paintbrush)
         self.canvas.bind("<ButtonRelease-1>", self.close_paintbrush)
         self.canvas.bind("<Return>", self.save_mask)
+        self.canvas.bind("<s>", self.save_mask)
         self.canvas.bind("<d>", self.clearlast)
         self.canvas.bind("<D>", self.clearall)
         self.canvas.bind("<m>", self.open_minimap)

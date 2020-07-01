@@ -33,7 +33,7 @@ Note that the program does not fill in the closed polygons in real time, but the
 
 If you would like to start over, hit `d` to (iteratively) clear the last drawn outline. Alternatively, hit `D` to clear all drawn outlines. You can also hit `m` (for `m`inimap) to open a new small window that shows where you are globally in the current image.
 
-When you are finished, hit `ENTER` to save the mask. You will be prompted for a filename to save. 
+When you are finished, hit `ENTER` or `s` to save the mask. You will be prompted for a filename to save. 
 
 ### Bounding box creation mode
 This mode allows the user to drag to create rectangles (that may, say, correspond to say regions of interest in the image). The output of this mode is the original image, with teh bounding boxes drawn on top.

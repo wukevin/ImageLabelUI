@@ -30,6 +30,9 @@ def build_parser():
         "--windowsize", "-w", type=int, default=750, help="Size of GUI window in pixels"
     )
     parser.add_argument(
+        "--minimapsize", "-m", type=int, default=400, help="Size of minimap in pixels"
+    )
+    parser.add_argument(
         "--color",
         "-c",
         type=str,
@@ -58,6 +61,7 @@ def main():
         pb_color=image_utils.ANNOT_COLORS[args.color],
         width=args.windowsize,
         height=args.windowsize,
+        minimap_size=args.minimapsize,
     )
     app.mainloop()
 

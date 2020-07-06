@@ -36,6 +36,7 @@ class ImageLabeller(tk.Tk):
         pb_color=image_utils.ANNOT_COLORS["GREEN"],
         width: int = 750,  # Width of the primary window
         height: int = 750,  # Height of the primary window
+        minimap_size: int = 400,  # Size of square minimap
     ):
         tk.Tk.__init__(self)
         self.img_fname = img_fname
@@ -44,6 +45,7 @@ class ImageLabeller(tk.Tk):
         self.rgb_color = pb_color
         self.win_width = width
         self.win_height = height
+        self.minimap_size = minimap_size
 
         self.recorded_points = []
         self.tkinter_lines = []
@@ -92,7 +94,7 @@ class ImageLabeller(tk.Tk):
         """
         win = tk.Toplevel(self)
         win.title("Minimap")
-        win.geometry("400x400")
+        win.geometry(f"{self.minimap_size}x{self.minimap_size}")
 
         # Determine currrent viewport
         top_left = (self.canvas.canvasx(0), self.canvas.canvasy(0))
@@ -107,7 +109,9 @@ class ImageLabeller(tk.Tk):
         img = self.img.copy()
         img_width, img_height = img.size
         img_draw = ImageDraw.Draw(img)
-        stroke_width = 2 * int(max(img_width, img_height) / 400)
+        # Scale the stroke width with respect to how much we're downsizing the image
+        # This ensures that the stroke is consistently visible
+        stroke_width = 2 * int(max(img_width, img_height) / self.minimap_size)
         stroke_color = (0, 255, 0)
         img_draw.line((*top_left, *top_right), fill=stroke_color, width=stroke_width)
         img_draw.line(
@@ -119,7 +123,9 @@ class ImageLabeller(tk.Tk):
         img_draw.line((*bottom_left, *top_left), fill=stroke_color, width=stroke_width)
 
         # Resize and display
-        photo_img = ImageTk.PhotoImage(img.resize((400, 400), Image.ANTIALIAS))
+        photo_img = ImageTk.PhotoImage(
+            img.resize((self.minimap_size, self.minimap_size), Image.ANTIALIAS)
+        )
         lbl2 = tk.Label(win, image=photo_img)
         lbl2.image = photo_img
         lbl2.pack()
